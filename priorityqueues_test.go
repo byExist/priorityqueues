@@ -19,12 +19,12 @@ func TestNew(t *testing.T) {
 
 func TestCollect(t *testing.T) {
 	emptySeq := func(yield func(int) bool) {}
-	pq := pqs.Collect(emptySeq, func(x int) int { return x })
+	pq := pqs.FromSeq(emptySeq, func(x int) int { return x })
 	assert.NotNil(t, pq)
 	assert.Equal(t, 0, pqs.Len(pq))
 
 	values := []int{3, 1, 4, 2}
-	pq = pqs.Collect(slices.Values(values), func(x int) int { return x })
+	pq = pqs.FromSeq(slices.Values(values), func(x int) int { return x })
 	assert.Equal(t, len(values), pqs.Len(pq))
 
 	prev, ok := pqs.Peek(pq)
@@ -211,10 +211,10 @@ func ExampleNew_struct() {
 	// Charlie 35
 }
 
-// ExampleCollect demonstrates usage of Collect with a generator.
-func ExampleCollect() {
+// ExampleFromSeq demonstrates usage of FromSeq.
+func ExampleFromSeq() {
 	seq := slices.Values([]int{1, 3, 2})
-	pq := pqs.Collect(seq, func(x int) int { return x })
+	pq := pqs.FromSeq(seq, func(x int) int { return x })
 	v, _ := pqs.Dequeue(pq)
 	fmt.Println(v)
 	// Output:

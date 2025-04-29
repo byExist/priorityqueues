@@ -8,6 +8,8 @@ import (
 
 type priorityFunc[T any, P cmp.Ordered] func(T) P
 
+// PriorityQueue is a generic priority queue that holds elements of any type T
+// and prioritizes them using a user-defined priority function that returns a value of type P.
 type PriorityQueue[T any, P cmp.Ordered] struct {
 	items        []entry[T, P]
 	priorityFunc priorityFunc[T, P]
@@ -53,6 +55,7 @@ func (a *adapter[T, P]) Pop() any {
 	return item
 }
 
+// New creates a new empty priority queue with the given priority function.
 func New[T any, P cmp.Ordered](priorityFunc priorityFunc[T, P]) *PriorityQueue[T, P] {
 	return &PriorityQueue[T, P]{
 		items:        make([]entry[T, P], 0),
@@ -60,7 +63,8 @@ func New[T any, P cmp.Ordered](priorityFunc priorityFunc[T, P]) *PriorityQueue[T
 	}
 }
 
-func Collect[T any, P cmp.Ordered](seq iter.Seq[T], priorityFunc priorityFunc[T, P]) *PriorityQueue[T, P] {
+// FromSeq constructs a priority queue from an iter.Seq and a priority function.
+func FromSeq[T any, P cmp.Ordered](seq iter.Seq[T], priorityFunc priorityFunc[T, P]) *PriorityQueue[T, P] {
 	pq := New(priorityFunc)
 	for v := range seq {
 		Enqueue(pq, v)
@@ -68,6 +72,7 @@ func Collect[T any, P cmp.Ordered](seq iter.Seq[T], priorityFunc priorityFunc[T,
 	return pq
 }
 
+// Clone creates a deep copy of the given priority queue.
 func Clone[T any, P cmp.Ordered](pq *PriorityQueue[T, P]) *PriorityQueue[T, P] {
 	newItems := make([]entry[T, P], len(pq.items))
 	copy(newItems, pq.items)
@@ -77,6 +82,7 @@ func Clone[T any, P cmp.Ordered](pq *PriorityQueue[T, P]) *PriorityQueue[T, P] {
 	}
 }
 
+// Enqueue inserts a new element into the priority queue.
 func Enqueue[T any, P cmp.Ordered](pq *PriorityQueue[T, P], value T) {
 	adapter := &adapter[T, P]{pq}
 	e := entry[T, P]{
@@ -86,6 +92,8 @@ func Enqueue[T any, P cmp.Ordered](pq *PriorityQueue[T, P], value T) {
 	heap.Push(adapter, e)
 }
 
+// Dequeue removes and returns the element with the highest priority.
+// Returns false if the queue is empty.
 func Dequeue[T any, P cmp.Ordered](pq *PriorityQueue[T, P]) (T, bool) {
 	if Len(pq) == 0 {
 		var zero T
@@ -96,6 +104,8 @@ func Dequeue[T any, P cmp.Ordered](pq *PriorityQueue[T, P]) (T, bool) {
 	return item.value, true
 }
 
+// Peek returns the element with the highest priority without removing it.
+// Returns false if the queue is empty.
 func Peek[T any, P cmp.Ordered](pq *PriorityQueue[T, P]) (T, bool) {
 	if len(pq.items) == 0 {
 		var zero T
@@ -104,10 +114,13 @@ func Peek[T any, P cmp.Ordered](pq *PriorityQueue[T, P]) (T, bool) {
 	return pq.items[0].value, true
 }
 
+// Len returns the number of elements in the priority queue.
 func Len[T any, P cmp.Ordered](pq *PriorityQueue[T, P]) int {
 	return len(pq.items)
 }
 
+// Values returns an iter.Seq of all values in the priority queue,
+// without guaranteeing any specific order.
 func Values[T any, P cmp.Ordered](pq *PriorityQueue[T, P]) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for _, e := range pq.items {
@@ -118,6 +131,7 @@ func Values[T any, P cmp.Ordered](pq *PriorityQueue[T, P]) iter.Seq[T] {
 	}
 }
 
+// Clear removes all elements from the priority queue.
 func Clear[T any, P cmp.Ordered](pq *PriorityQueue[T, P]) {
 	pq.items = pq.items[:0]
 }
