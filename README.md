@@ -1,5 +1,3 @@
-
-
 # priorityqueues [![GoDoc](https://pkg.go.dev/badge/github.com/byExist/priorityqueues.svg)](https://pkg.go.dev/github.com/byExist/priorityqueues) [![Go Report Card](https://goreportcard.com/badge/github.com/byExist/priorityqueues)](https://goreportcard.com/report/github.com/byExist/priorityqueues)
 
 ## What is "priorityqueues"?
@@ -30,37 +28,41 @@ package main
 
 import (
 	"fmt"
+
 	pqs "github.com/byExist/priorityqueues"
 )
 
+type task struct {
+	name     string
+	priority int
+}
+
 func main() {
-	// Create a new priority queue with integer priority
-	pq := pqs.New(func(x int) int { return x })
-
-	// Enqueue elements
-	pqs.Enqueue(pq, 10)
-	pqs.Enqueue(pq, 30)
-	pqs.Enqueue(pq, 20)
-
-	// Peek the top-priority element
-	if val, ok := pqs.Peek(pq); ok {
-		fmt.Println("Peek:", val)
+	// Create a priority queue with custom priority function
+	priority := func(t task) int {
+		return t.priority
 	}
+	pq := pqs.New(priority)
 
-	// Dequeue elements
+	// Add tasks to the queue
+	pqs.Enqueue(pq, task{"write docs", 2})
+	pqs.Enqueue(pq, task{"fix bug", 5})
+	pqs.Enqueue(pq, task{"implement feature", 3})
+
+	// Process tasks in order of priority
 	for {
-		val, ok := pqs.Dequeue(pq)
+		t, ok := pqs.Dequeue(pq)
 		if !ok {
 			break
 		}
-		fmt.Println("Dequeue:", val)
+		fmt.Println("Processing:", t.name)
 	}
 }
 ```
 
 ## Usage
 
-The `priorityqueues` package allows you to create and manage efficient, type-safe priority queues using any Go type. You can define your own priority function and use generic methods to enqueue, dequeue, peek, clear, clone, and iterate through the queue.
+The `priorityqueues` package allows you to create and manage efficient, type-safe priority queues using any Go type. You can define your own priority function and use generic functions to enqueue, dequeue, peek, clear, clone, and iterate through the queue.
 
 ## API Overview
 
@@ -69,7 +71,7 @@ The `priorityqueues` package allows you to create and manage efficient, type-saf
 - `New[T, P](priorityFunc func(T) P) *PriorityQueue[T, P]`
 - `FromSeq[T, P](seq iter.Seq[T], priorityFunc func(T) P) *PriorityQueue[T, P]`
 
-### Core Methods
+### Core Functions
 
 - `Clone(pq *PriorityQueue[T, P]) *PriorityQueue[T, P]`
 - `Enqueue(pq *PriorityQueue[T, P], item T)`
