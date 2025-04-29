@@ -66,6 +66,15 @@ The `priorityqueues` package allows you to create and manage efficient, type-saf
 
 ## API Overview
 
+### Types
+
+- `priorityFunc[T, P]`: A user-defined function that converts an element of type `T` into a priority value of type `P`. The type `P` must satisfy the `cmp.Ordered` constraint, which means it must support comparison operators so the priority queue can order elements based on the returned value.
+
+```go
+// priorityFunc is used to convert an element into a priority value.
+type priorityFunc[T any, P cmp.Ordered] func(T) P
+```
+
 ### Constructors
 
 - `New[T, P](priorityFunc func(T) P) *PriorityQueue[T, P]`
