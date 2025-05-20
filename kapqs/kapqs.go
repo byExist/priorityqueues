@@ -133,7 +133,7 @@ func Peek[K comparable, T any, P cmp.Ordered](pq *PriorityQueue[K, T, P]) (T, bo
 	return elem.item, true
 }
 
-func Refresh[K comparable, T any, P cmp.Ordered](pq *PriorityQueue[K, T, P], item T) bool {
+func Update[K comparable, T any, P cmp.Ordered](pq *PriorityQueue[K, T, P], item T) bool {
 	key := pq.heap.keyFunc(item)
 	loc, exists := pq.heap.lookup[key]
 	if !exists {

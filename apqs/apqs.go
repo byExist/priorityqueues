@@ -130,7 +130,7 @@ func Peek[T comparable, P cmp.Ordered](pq *PriorityQueue[T, P]) (T, bool) {
 	return elem.item, true
 }
 
-func Refresh[T comparable, P cmp.Ordered](pq *PriorityQueue[T, P], item T) bool {
+func Update[T comparable, P cmp.Ordered](pq *PriorityQueue[T, P], item T) bool {
 	loc, exists := pq.heap.lookup[item]
 	if !exists {
 		return false
