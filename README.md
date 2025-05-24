@@ -4,8 +4,6 @@
 
 This repository provides four distinct priority queue strategies, each targeting a specific use case or trade-off between simplicity, flexibility, and key-based access.
 
----
-
 ## 📦 Packages Overview
 
 | Package  | Key Support | Priority Injection | Stability | Typical Use Case |
@@ -17,8 +15,6 @@ This repository provides four distinct priority queue strategies, each targeting
 
 Each package is self-contained and independently tested.
 
----
-
 ## ✨ Why multiple queues?
 
 Different use cases require different queue behavior:
@@ -27,8 +23,6 @@ Different use cases require different queue behavior:
 - **Custom priority from a field**? Use `kpqs`.
 - **Keyed access with externally determined priority**? Use `kmpqs`.
 - **Just need control over the comparator**? Use `mpqs`.
-
----
 
 ## 📂 Structure
 
@@ -46,8 +40,6 @@ Each directory contains:
 - `*_test.go` – unit tests and examples  
 - `README.md` – (optional) package-specific usage and design notes
 
----
-
 ## ✅ Features
 
 - Go 1.18+ generic support
@@ -55,8 +47,6 @@ Each directory contains:
 - Stable priority resolution with tie-breaking by insertion order
 - Optional key-based lookup (`kmpqs`, `kpqs`)
 - Custom comparator functions
-
----
 
 ## 🔍 Getting Started
 
@@ -82,8 +72,6 @@ q := kmpqs.New(
 kmpqs.Enqueue(q, &Process{PID: "123", Name: "nginx"}, 5)
 ```
 
----
-
 ## 🧪 Testing
 
 Each package includes full test coverage and practical `Example` functions.
@@ -94,14 +82,10 @@ Run all tests with:
 go test ./...
 ```
 
----
-
 ## 📚 See Also
 
 - [Go container/heap](https://pkg.go.dev/container/heap)
 - [Go Generics](https://go.dev/doc/tutorial/generics)
-
----
 
 ## 📄 License
 
