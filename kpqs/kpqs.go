@@ -57,26 +57,27 @@ func counter() func() int {
 }
 
 type PriorityQueue[K comparable, T any, P cmp.Ordered] struct {
-	heap    *heapImpl[K, T, P]
-	counter func() int
+	heap     *heapImpl[K, T, P]
+	counter  func() int
+	prioFunc func(T) P
 }
 
-func MinFirst[K comparable, T any, P cmp.Ordered](x, y Elem[T, P]) bool {
+func MinFirst[T any, P cmp.Ordered](x, y Elem[T, P]) bool {
 	return x.prio < y.prio
 }
 
-func MaxFirst[K comparable, T, P cmp.Ordered](x, y Elem[T, P]) bool {
+func MaxFirst[T any, P cmp.Ordered](x, y Elem[T, P]) bool {
 	return x.prio > y.prio
 }
 
-func StableMinFirst[K comparable, T, P cmp.Ordered](x, y Elem[T, P]) bool {
+func StableMinFirst[T any, P cmp.Ordered](x, y Elem[T, P]) bool {
 	if x.prio == y.prio {
 		return x.seq < y.seq
 	}
 	return x.prio < y.prio
 }
 
-func StableMaxFirst[K comparable, T, P cmp.Ordered](x, y Elem[T, P]) bool {
+func StableMaxFirst[T any, P cmp.Ordered](x, y Elem[T, P]) bool {
 	if x.prio == y.prio {
 		return x.seq < y.seq
 	}
@@ -84,8 +85,9 @@ func StableMaxFirst[K comparable, T, P cmp.Ordered](x, y Elem[T, P]) bool {
 }
 
 func New[K comparable, T any, P cmp.Ordered](
-	keyFunc func(T) K,
 	lessFunc func(x, y Elem[T, P]) bool,
+	keyFunc func(T) K,
+	prioFunc func(T) P,
 ) *PriorityQueue[K, T, P] {
 	return &PriorityQueue[K, T, P]{
 		heap: &heapImpl[K, T, P]{
@@ -94,7 +96,8 @@ func New[K comparable, T any, P cmp.Ordered](
 			keyFunc:  keyFunc,
 			lessFunc: lessFunc,
 		},
-		counter: counter(),
+		counter:  counter(),
+		prioFunc: prioFunc,
 	}
 }
 
@@ -104,10 +107,10 @@ func Clear[K comparable, T any, P cmp.Ordered](pq *PriorityQueue[K, T, P]) {
 	pq.counter = counter()
 }
 
-func Enqueue[K comparable, T any, P cmp.Ordered](pq *PriorityQueue[K, T, P], item T, prio P) {
+func Enqueue[K comparable, T any, P cmp.Ordered](pq *PriorityQueue[K, T, P], item T) {
 	elem := Elem[T, P]{
 		item: item,
-		prio: prio,
+		prio: pq.prioFunc(item),
 		seq:  pq.counter(),
 	}
 	heap.Push(pq.heap, elem)
@@ -131,7 +134,7 @@ func Peek[K comparable, T any, P cmp.Ordered](pq *PriorityQueue[K, T, P]) (T, bo
 	return elem.item, true
 }
 
-func Update[K comparable, T any, P cmp.Ordered](pq *PriorityQueue[K, T, P], item T, newPrio P) bool {
+func Update[K comparable, T any, P cmp.Ordered](pq *PriorityQueue[K, T, P], item T) bool {
 	key := pq.heap.keyFunc(item)
 	loc, exists := pq.heap.lookup[key]
 	if !exists {
@@ -139,7 +142,7 @@ func Update[K comparable, T any, P cmp.Ordered](pq *PriorityQueue[K, T, P], item
 	}
 	elem := Elem[T, P]{
 		item: item,
-		prio: newPrio,
+		prio: pq.prioFunc(item),
 		seq:  pq.counter(),
 	}
 	pq.heap.elems[loc] = elem

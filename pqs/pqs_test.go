@@ -6,22 +6,51 @@ import (
 
 	"github.com/byExist/priorityqueues/pqs"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
-func TestMinFirst(t *testing.T) {
-	require.True(t, pqs.MinFirst(1, 2))
-	require.False(t, pqs.MinFirst(2, 1))
-}
-
-func TestMaxFirst(t *testing.T) {
-	require.True(t, pqs.MaxFirst(3, 2))
-	require.False(t, pqs.MaxFirst(1, 4))
-}
-
-func TestNew(t *testing.T) {
+func TestEnqueueDequeueSingle(t *testing.T) {
 	pq := pqs.New(pqs.MinFirst[int])
-	require.NotNil(t, pq)
+	pqs.Enqueue(pq, 42)
+	item, ok := pqs.Dequeue(pq)
+	assert.True(t, ok)
+	assert.Equal(t, 42, item)
+}
+
+func TestEnqueueDequeueMultiple(t *testing.T) {
+	pq := pqs.New(pqs.MinFirst[int])
+	pqs.Enqueue(pq, 3)
+	pqs.Enqueue(pq, 1)
+	pqs.Enqueue(pq, 2)
+	item1, _ := pqs.Dequeue(pq)
+	item2, _ := pqs.Dequeue(pq)
+	item3, _ := pqs.Dequeue(pq)
+	assert.Equal(t, 1, item1)
+	assert.Equal(t, 2, item2)
+	assert.Equal(t, 3, item3)
+}
+
+func TestPeek(t *testing.T) {
+	pq := pqs.New(pqs.MinFirst[int])
+	pqs.Enqueue(pq, 5)
+	item, ok := pqs.Peek(pq)
+	assert.True(t, ok)
+	assert.Equal(t, 5, item)
+}
+
+func TestPeekAfterDequeue(t *testing.T) {
+	pq := pqs.New(pqs.MinFirst[int])
+	pqs.Enqueue(pq, 10)
+	pqs.Peek(pq)
+	item, _ := pqs.Dequeue(pq)
+	assert.Equal(t, 10, item)
+}
+
+func TestLen(t *testing.T) {
+	pq := pqs.New(pqs.MinFirst[int])
+	assert.Equal(t, 0, pqs.Len(pq))
+	pqs.Enqueue(pq, 1)
+	assert.Equal(t, 1, pqs.Len(pq))
+	pqs.Dequeue(pq)
 	assert.Equal(t, 0, pqs.Len(pq))
 }
 
@@ -31,185 +60,124 @@ func TestClear(t *testing.T) {
 	pqs.Enqueue(pq, 2)
 	pqs.Clear(pq)
 	assert.Equal(t, 0, pqs.Len(pq))
-}
-
-func TestEnqueue(t *testing.T) {
-	pq := pqs.New(pqs.MinFirst[int])
-	pqs.Enqueue(pq, 10)
-	assert.Equal(t, 1, pqs.Len(pq))
-	top, ok := pqs.Peek(pq)
-	require.True(t, ok)
-	assert.Equal(t, 10, top)
-}
-
-func TestDequeue(t *testing.T) {
-	pq := pqs.New(pqs.MinFirst[int])
-	pqs.Enqueue(pq, 3)
-	pqs.Enqueue(pq, 1)
-	pqs.Enqueue(pq, 2)
-
-	v, ok := pqs.Dequeue(pq)
-	require.True(t, ok)
-	assert.Equal(t, 1, v)
-
-	v, ok = pqs.Dequeue(pq)
-	require.True(t, ok)
-	assert.Equal(t, 2, v)
-
-	v, ok = pqs.Dequeue(pq)
-	require.True(t, ok)
-	assert.Equal(t, 3, v)
-}
-
-func TestDequeue_Empty(t *testing.T) {
-	pq := pqs.New(pqs.MinFirst[int])
-	_, ok := pqs.Dequeue(pq)
-	assert.False(t, ok)
-}
-
-func TestPeek(t *testing.T) {
-	pq := pqs.New(pqs.MinFirst[int])
-	pqs.Enqueue(pq, 5)
-	pqs.Enqueue(pq, 1)
-	top, ok := pqs.Peek(pq)
-	require.True(t, ok)
-	assert.Equal(t, 1, top)
-	assert.Equal(t, 2, pqs.Len(pq)) // Peek should not remove
-}
-
-func TestPeek_Empty(t *testing.T) {
-	pq := pqs.New(pqs.MinFirst[int])
 	_, ok := pqs.Peek(pq)
 	assert.False(t, ok)
 }
 
-func TestLen(t *testing.T) {
+func TestEmptyQueueBehavior(t *testing.T) {
 	pq := pqs.New(pqs.MinFirst[int])
-	assert.Equal(t, 0, pqs.Len(pq))
-	pqs.Enqueue(pq, 10)
-	assert.Equal(t, 1, pqs.Len(pq))
+	_, ok1 := pqs.Peek(pq)
+	_, ok2 := pqs.Dequeue(pq)
+	assert.False(t, ok1)
+	assert.False(t, ok2)
 }
 
-func Example_minLengthString() {
-	less := func(a, b string) bool {
-		return len(a) < len(b)
+func TestSingleElementQueue(t *testing.T) {
+	pq := pqs.New(pqs.MinFirst[int])
+	pqs.Enqueue(pq, 7)
+	peeked, ok1 := pqs.Peek(pq)
+	dequeued, ok2 := pqs.Dequeue(pq)
+	assert.True(t, ok1)
+	assert.True(t, ok2)
+	assert.Equal(t, 7, peeked)
+	assert.Equal(t, 7, dequeued)
+	assert.Equal(t, 0, pqs.Len(pq))
+}
+
+func TestMinFirstOrdering(t *testing.T) {
+	pq := pqs.New(pqs.MinFirst[int])
+	pqs.Enqueue(pq, 10)
+	pqs.Enqueue(pq, 5)
+	item, _ := pqs.Dequeue(pq)
+	assert.Equal(t, 5, item)
+}
+
+func TestMaxFirstOrdering(t *testing.T) {
+	pq := pqs.New(pqs.MaxFirst[int])
+	pqs.Enqueue(pq, 10)
+	pqs.Enqueue(pq, 5)
+	item, _ := pqs.Dequeue(pq)
+	assert.Equal(t, 10, item)
+}
+
+func Example_stringLengthPriority() {
+	lengthPriority := func(x, y string) bool {
+		return len(x) < len(y)
 	}
 
-	pq := pqs.New(less)
-	pqs.Enqueue(pq, "banana")
-	pqs.Enqueue(pq, "kiwi")
+	pq := pqs.New(lengthPriority)
 	pqs.Enqueue(pq, "apple")
-	pqs.Enqueue(pq, "fig")
+	pqs.Enqueue(pq, "kiwi")
+	pqs.Enqueue(pq, "banana")
 
 	for pqs.Len(pq) > 0 {
-		v, _ := pqs.Dequeue(pq)
-		fmt.Println(v)
+		item, _ := pqs.Dequeue(pq)
+		fmt.Println(item)
 	}
 	// Output:
-	// fig
 	// kiwi
 	// apple
 	// banana
-}
-
-func ExampleMinFirst() {
-	pq := pqs.New(pqs.MinFirst[int])
-	pqs.Enqueue(pq, 5)
-	pqs.Enqueue(pq, 2)
-	pqs.Enqueue(pq, 3)
-
-	for pqs.Len(pq) > 0 {
-		v, _ := pqs.Dequeue(pq)
-		fmt.Println(v)
-	}
-	// Output:
-	// 2
-	// 3
-	// 5
-}
-
-func ExampleMaxFirst() {
-	pq := pqs.New(pqs.MaxFirst[int])
-	pqs.Enqueue(pq, 1)
-	pqs.Enqueue(pq, 4)
-	pqs.Enqueue(pq, 2)
-
-	for pqs.Len(pq) > 0 {
-		v, _ := pqs.Dequeue(pq)
-		fmt.Println(v)
-	}
-	// Output:
-	// 4
-	// 2
-	// 1
 }
 
 func ExampleNew() {
 	pq := pqs.New(pqs.MinFirst[int])
 	pqs.Enqueue(pq, 3)
 	pqs.Enqueue(pq, 1)
-	for pqs.Len(pq) > 0 {
-		v, _ := pqs.Dequeue(pq)
-		fmt.Println(v)
-	}
-	// Output:
-	// 1
-	// 3
-}
-
-func ExampleClear() {
-	pq := pqs.New(pqs.MinFirst[int])
-	pqs.Enqueue(pq, 10)
-	pqs.Clear(pq)
-	fmt.Println("len after clear:", pqs.Len(pq))
-	// Output:
-	// len after clear: 0
+	item, _ := pqs.Dequeue(pq)
+	fmt.Println(item)
+	// Output: 1
 }
 
 func ExampleEnqueue() {
 	pq := pqs.New(pqs.MinFirst[int])
-	pqs.Enqueue(pq, 42)
-	v, ok := pqs.Peek(pq)
-	if ok {
-		fmt.Println("enqueued:", v)
-	}
-	// Output:
-	// enqueued: 42
+	pqs.Enqueue(pq, 5)
+	item, _ := pqs.Peek(pq)
+	fmt.Println(item)
+	// Output: 5
 }
 
 func ExampleDequeue() {
 	pq := pqs.New(pqs.MinFirst[int])
-	pqs.Enqueue(pq, 3)
+	pqs.Enqueue(pq, 2)
 	pqs.Enqueue(pq, 1)
-	v, ok := pqs.Dequeue(pq)
-	if ok {
-		fmt.Println("dequeued:", v)
-	}
-	// Output:
-	// dequeued: 1
+	item, _ := pqs.Dequeue(pq)
+	fmt.Println(item)
+	// Output: 1
 }
 
 func ExamplePeek() {
 	pq := pqs.New(pqs.MinFirst[int])
 	pqs.Enqueue(pq, 7)
-	pqs.Enqueue(pq, 3)
-
-	v, ok := pqs.Peek(pq)
-	if ok {
-		fmt.Println("peek:", v)
-	}
-	fmt.Println("len:", pqs.Len(pq))
-	// Output:
-	// peek: 3
-	// len: 2
+	item, _ := pqs.Peek(pq)
+	fmt.Println(item)
+	// Output: 7
 }
 
 func ExampleLen() {
 	pq := pqs.New(pqs.MinFirst[int])
-	fmt.Println("len:", pqs.Len(pq))
-	pqs.Enqueue(pq, 7)
-	fmt.Println("len after enqueue:", pqs.Len(pq))
+	fmt.Println(pqs.Len(pq))
+	pqs.Enqueue(pq, 1)
+	fmt.Println(pqs.Len(pq))
 	// Output:
-	// len: 0
-	// len after enqueue: 1
+	// 0
+	// 1
+}
+
+func ExampleClear() {
+	pq := pqs.New(pqs.MinFirst[int])
+	pqs.Enqueue(pq, 1)
+	pqs.Clear(pq)
+	fmt.Println(pqs.Len(pq))
+	// Output: 0
+}
+
+func ExampleMinFirst() {
+	fmt.Println(pqs.MinFirst(1, 2))
+	// Output: true
+}
+
+func ExampleMaxFirst() {
+	fmt.Println(pqs.MaxFirst(1, 2))
+	// Output: false
 }
